@@ -1,33 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react';
 import './App.css'
+import Card from './components/card/Card';
+import Cart from './components/cart/Cart';
+import { getData } from './constants/db'
 
-function App() {
-  const [count, setCount] = useState(0)
+const cources = getData();
+
+const telegram = window.Telegram.WebApp;
+console.log(telegram);
+
+const App = () => {
+const [cartItems, setCartItems] = useState([]);
+
+useEffect(() => {
+  telegram.ready();
+}, [])
+
+
+const onAddItem =(item)=>{
+  const existItem = cartItems.find(c => c.id == item.id);
+  if(existItem){
+    const newData = cartItems.map(c => c.id == item.id ? {...existItem, quantity: existItem.quantity + 1} : c);
+    setCartItems(newData);
+  }
+  else{
+    const newData = [...cartItems, {...item, quantity : 1}];
+    setCartItems(newData); 
+  }
+};
+const onRemoveItem =(item)=>{
+  const existItem = cartItems.find(c => c.id == item.id);
+  if(existItem.quantity ==1){
+    const newData = cartItems.filter(c => c.id != existItem.id );
+    setCartItems(newData);
+  }
+  else{
+    const newData = cartItems.map(c=> c.id == existItem.id ) ? {...existItem, quantity: existItem.quantity - 1} : c
+    setCartItems(newData); 
+  }
+};
+
+const onCheckout =()=>{
+  telegram.MainButton.text = 'sotib olish'; 
+  telegram.MainButton.show();
+}
 
   return (
     <>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <h1>Sammi kurslari</h1>
+        <Cart cartItems ={cartItems} onCheckout ={onCheckout}/>
+        <div className="cources_list">
+        {
+          cources.map(cource => (
+            <>
+             <Card key={cource.id} cource = {cource} onAddItem = {onAddItem} onRemoveItem = {onRemoveItem} />
+            </>
+          ))
+        }  
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
