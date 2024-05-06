@@ -3,6 +3,7 @@ import './App.css'
 import Card from './components/card/Card';
 import Cart from './components/cart/Cart';
 import { getData } from './constants/db'
+import { useCallback } from 'react';
 
 const cources = getData();
 
@@ -39,6 +40,15 @@ const onRemoveItem =(item)=>{
     setCartItems(newData); 
   }
 };
+
+const onSendData = useCallback(()=>{
+  telegram.sendData (JSON.stringify(cartItems))
+}, [cartItems])
+
+useEffect(()=>{
+  telegram.onEvent('manButtonClicked', onSendData);
+  return ()=> telegram.offEvent('mainButtonClicked', onSendData)
+}, [onSendData])
 
 const onCheckout =()=>{
   telegram.MainButton.text = 'sotib olish'; 
